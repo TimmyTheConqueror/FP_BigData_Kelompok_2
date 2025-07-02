@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Prediksi Gagal Jantung (CHF)</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --light-gray: #f8f9fa;
+            --dark-blue: #212529;
+            --text-muted: #6c757d;
+        }
+
+        body {
+            background-color: var(--light-gray);
+            font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .sidebar {
+            background-color: var(--dark-blue);
+            color: #fff;
+            height: 100vh;
+            position: fixed;
+            width: 250px;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            font-size: 1rem;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: #fff;
+            border-radius: 5px;
+        }
+
+        .sidebar .sidebar-header {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+        }
+
+        .stat-card {
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            opacity: 0.3;
+        }
+
+        .form-control, .form-select {
+            border-radius: 0.375rem;
+        }
+
+        #prediction-result-card {
+            display: none; /* Disembunyikan secara default */
+            border-left: 5px solid;
+        }
+        
+        .alert-success { border-color: var(--success-color); }
+        .alert-danger { border-color: var(--danger-color); }
+        
+        .spinner-border { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar d-flex flex-column p-3">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-heart-pulse me-2"></i>Prediksi CHF</h3>
+            <small class="text-white-50">Analisis Big Data EKG</small>
+        </div>
+        <hr class="text-white-50">
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item mb-1">
+                <a href="#dashboard" class="nav-link active"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a>
+            </li>
+            <li class="nav-item mb-1">
+                <a href="#prediction" class="nav-link"><i class="fas fa-user-md me-2"></i> Prediksi Pasien</a>
+            </li>
+            <li class="nav-item mb-1">
+                <a href="#about" class="nav-link"><i class="fas fa-info-circle me-2"></i> Tentang Proyek</a>
+            </li>
+        </ul>
+        <hr class="text-white-50">
+        <div class="text-center text-white-50 small">Kelompok 5 - Big Data</div>
+    </div>
+
+    <main class="main-content">
+        <section id="dashboard">
+            <h1 class="h2 mb-4">Dashboard Statistik Dataset PTB-XL</h1>
+            <div class="row">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stat-card">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-subtitle mb-2 text-muted">Total Rekaman EKG</h6>
+                                <h4 id="total-records" class="card-title fw-bold">...</h4>
+                            </div>
+                            <i class="fas fa-file-waveform card-icon"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                     <div class="card stat-card">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-subtitle mb-2 text-muted">Kasus Non-CHF</h6>
+                                <h4 id="non-chf-cases" class="card-title fw-bold">...</h4>
+                            </div>
+                            <i class="fas fa-heart card-icon text-success"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                     <div class="card stat-card">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-subtitle mb-2 text-muted">Kasus CHF</h6>
+                                <h4 id="chf-cases" class="card-title fw-bold text-danger">...</h4>
+                            </div>
+                            <i class="fas fa-heart-crack card-icon text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+                 <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stat-card">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-subtitle mb-2 text-muted">Rata-rata Usia</h6>
+                                <h4 id="average-age" class="card-title fw-bold">...</h4>
+                            </div>
+                            <i class="fas fa-person-cane card-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-7 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header fw-bold">Distribusi Kelas (CHF vs Non-CHF)</div>
+                        <div class="card-body d-flex justify-content-center align-items-center">
+                            <canvas id="class-distribution-chart" style="max-height: 350px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header fw-bold">Distribusi Jenis Kelamin</div>
+                        <div class="card-body d-flex justify-content-center align-items-center">
+                            <canvas id="gender-distribution-chart" style="max-height: 350px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="prediction" style="display:none;">
+            <h1 class="h2 mb-4">Prediksi Risiko Gagal Jantung (CHF)</h1>
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header fw-bold">
+                            Input Data Pasien
+                        </div>
+                        <div class="card-body">
+                            <form id="prediction-form">
+                                <div class="mb-3">
+                                    <label for="age" class="form-label">Usia (Tahun)</label>
+                                    <input type="number" class="form-control" id="age" name="age" placeholder="Contoh: 65" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="sex" class="form-label">Jenis Kelamin</label>
+                                    <select class="form-select" id="sex" name="sex" required>
+                                        <option value="" disabled selected>Pilih Jenis Kelamin</option>
+                                        <option value="Male">Pria</option>
+                                        <option value="Female">Wanita</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="height" class="form-label">Tinggi Badan (cm)</label>
+                                    <input type="number" class="form-control" id="height" name="height" placeholder="Contoh: 170" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="weight" class="form-label">Berat Badan (kg)</label>
+                                    <input type="number" class="form-control" id="weight" name="weight" placeholder="Contoh: 85" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    <span class="button-text">Jalankan Prediksi</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card" id="prediction-result-card">
+                         <div class="card-header fw-bold">Hasil Prediksi</div>
+                         <div class="card-body text-center">
+                             <h3 id="prediction-label" class="mb-3">...</h3>
+                             <p class="mb-1">Berdasarkan data yang diinput:</p>
+                             <ul class="list-unstyled text-muted" id="input-summary"></ul>
+                             <hr>
+                             <p class="mb-2">Tingkat Keyakinan Model:</p>
+                             <div class="progress" style="height: 25px;">
+                                 <div id="prediction-probability" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                             </div>
+                             <small class="form-text text-muted mt-3 d-block">
+                                 Disclaimer: Hasil ini adalah prediksi dari model ML dan tidak menggantikan diagnosis medis profesional.
+                             </small>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" style="display:none;">
+            <h1 class="h2 mb-4">Tentang Proyek</h1>
+            <div class="card">
+                <div class="card-body">
+                    <p>Proyek ini merupakan implementasi alur kerja *end-to-end* menggunakan <strong>Apache Spark</strong> untuk menganalisis dataset EKG PTB-XL dan membangun model Machine Learning untuk deteksi Gagal Jantung Kongestif (CHF).</p>
+                    <h5 class="mt-4">Latar Belakang Masalah</h5>
+                    <p>Analisis awal pada dataset PTB-XL menunjukkan adanya ketidakseimbangan kelas yang signifikan. Jumlah data pasien sehat atau dengan kondisi non-CHF jauh lebih banyak dibandingkan pasien dengan CHF. Hal ini menyebabkan model awal yang naif menghasilkan akurasi 100% yang menyesatkan, karena model cenderung hanya memprediksi kelas mayoritas (Non-CHF) dan gagal mengidentifikasi kasus positif (CHF) sama sekali.</p>
+                    <h5 class="mt-4">Solusi dan Teknologi</h5>
+                    <p>Untuk mengatasi masalah ini, diperlukan teknik penanganan *imbalanced data* seperti *class weighting* atau *resampling* (oversampling/undersampling) sebelum melatih model. Seluruh proses, mulai dari pemuatan data, rekayasa fitur, hingga pelatihan dan evaluasi model, diorkestrasi menggunakan Apache Spark untuk skalabilitas dan pemrosesan data bervolume besar.</p>
+                    <ul>
+                        <li><strong>Bahasa & Framework</strong>: Python, PySpark</li>
+                        <li><strong>Libraries</strong>: Pandas, Spark MLlib</li>
+                        <li><strong>Model</strong>: RandomForestClassifier</li>
+                        <li><strong>Dataset</strong>: PTB-XL (ptbxl_database.csv, scp_statements.csv)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Base URL untuk API backend Anda
+            const API_BASE_URL = "http://127.0.0.1:5000/api/v1"; // Ganti dengan URL backend Anda
+
+            // --- Navigasi SPA (Single Page Application) Sederhana ---
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            const sections = document.querySelectorAll('.main-content > section');
+
+            function showSection(targetId) {
+                sections.forEach(section => {
+                    section.style.display = section.id === targetId ? 'block' : 'none';
+                });
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    const targetId = this.getAttribute('href').substring(1);
+                    showSection(targetId);
+                });
+            });
+
+            // --- Fungsi untuk memanggil API Backend ---
+            async function fetchData(endpoint) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}${endpoint}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    console.error(`Error fetching from ${endpoint}:`, error);
+                    // Tampilkan pesan error di UI jika diperlukan
+                    return null;
+                }
+            }
+
+            // --- Logika untuk Halaman Dashboard ---
+            async function populateDashboard() {
+                // Gunakan data statis dari notebook Anda sebagai fallback jika API gagal
+                const staticData = {
+                    total_records: 21799,
+                    chf_cases: 0, // Nilai awal dari notebook
+                    non_chf_cases: 21799,
+                    average_age: 61.8,
+                    gender_distribution: { Male: 11500, Female: 10299 }
+                };
+                
+                // Panggil endpoint statistik
+                const stats = await fetchData('/statistics') || staticData;
+
+                document.getElementById('total-records').textContent = stats.total_records.toLocaleString('id-ID');
+                document.getElementById('chf-cases').textContent = (stats.chf_cases || 0).toLocaleString('id-ID');
+                document.getElementById('non-chf-cases').textContent = stats.non_chf_cases.toLocaleString('id-ID');
+                document.getElementById('average-age').textContent = `${stats.average_age.toFixed(1)} Tahun`;
+
+                // Chart Distribusi Kelas
+                new Chart(document.getElementById('class-distribution-chart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Non-CHF', 'CHF'],
+                        datasets: [{
+                            data: [stats.non_chf_cases, stats.chf_cases],
+                            backgroundColor: ['#198754', '#dc3545'],
+                            borderColor: '#ffffff',
+                            borderWidth: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+                
+                // Panggil endpoint demografi
+                const demographics = await fetchData('/demographics') || { gender_distribution: staticData.gender_distribution };
+
+                // Chart Distribusi Gender
+                new Chart(document.getElementById('gender-distribution-chart'), {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(demographics.gender_distribution),
+                        datasets: [{
+                            data: Object.values(demographics.gender_distribution),
+                            backgroundColor: ['#0d6efd', '#fd7e14'],
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            }
+
+
+            // --- Logika untuk Halaman Prediksi ---
+            const predictionForm = document.getElementById('prediction-form');
+            const resultCard = document.getElementById('prediction-result-card');
+            const button = predictionForm.querySelector('button');
+            const spinner = button.querySelector('.spinner-border');
+            const buttonText = button.querySelector('.button-text');
+
+            predictionForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Tampilkan loading
+                button.disabled = true;
+                spinner.style.display = 'inline-block';
+                buttonText.textContent = 'Memproses...';
+                resultCard.style.display = 'none';
+
+                const formData = new FormData(this);
+                const patientData = Object.fromEntries(formData.entries());
+                // Konversi tipe data jika perlu
+                patientData.age = parseInt(patientData.age);
+                patientData.height = parseFloat(patientData.height);
+                patientData.weight = parseFloat(patientData.weight);
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/predict`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(patientData)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Prediction API error! status: ${response.status}`);
+                    }
+                    const result = await response.json();
+                    displayPredictionResult(result, patientData);
+
+                } catch (error) {
+                    console.error("Prediction failed:", error);
+                    alert("Gagal menghubungi server prediksi. Silakan coba lagi.");
+                } finally {
+                    // Sembunyikan loading
+                    button.disabled = false;
+                    spinner.style.display = 'none';
+                    buttonText.textContent = 'Jalankan Prediksi';
+                }
+            });
+
+            function displayPredictionResult(result, input) {
+                const labelEl = document.getElementById('prediction-label');
+                const probEl = document.getElementById('prediction-probability');
+                const summaryEl = document.getElementById('input-summary');
+
+                // Tampilkan ringkasan input
+                summaryEl.innerHTML = `
+                    <li><strong>Usia:</strong> ${input.age} tahun</li>
+                    <li><strong>Jenis Kelamin:</strong> ${input.sex}</li>
+                    <li><strong>Tinggi:</strong> ${input.height} cm</li>
+                    <li><strong>Berat:</strong> ${input.weight} kg</li>
+                `;
+                
+                // Atur tampilan berdasarkan hasil prediksi
+                const probabilityPercent = (result.probability * 100).toFixed(1);
+                
+                if (result.prediction === 1) { // Risiko CHF
+                    resultCard.className = 'card alert-danger';
+                    labelEl.textContent = result.prediction_label || "Risiko CHF Terdeteksi";
+                    probEl.classList.add('bg-danger');
+                    probEl.classList.remove('bg-success');
+                } else { // Tidak ada risiko
+                    resultCard.className = 'card alert-success';
+                    labelEl.textContent = result.prediction_label || "Risiko CHF Rendah";
+                    probEl.classList.add('bg-success');
+                    probEl.classList.remove('bg-danger');
+                }
+                
+                probEl.style.width = `${probabilityPercent}%`;
+                probEl.setAttribute('aria-valuenow', probabilityPercent);
+                probEl.textContent = `${probabilityPercent}%`;
+
+                resultCard.style.display = 'block';
+            }
+
+
+            // Inisialisasi halaman
+            populateDashboard(); // Panggil fungsi untuk mengisi data dashboard saat halaman dimuat
+            showSection('dashboard'); // Tampilkan section dashboard pertama kali
+        });
+    </script>
+
+</body>
+</html>

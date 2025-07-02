@@ -1,0 +1,6 @@
+pyspark
+pandas
+Flask
+Flask-Cors
+matplotlib
+wfdb
