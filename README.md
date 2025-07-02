@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://youtu.be/oDVLVuaJwcY">
-    <img src="LINK_LANGSUNG_KE_GAMBAR_THUMBNAIL_ANDA.png" alt="Demonstrasi Proyek Dashboard CHF" width="800"/>
+    <img src="https://github.com/TimmyTheConqueror/FP_BigData_Kelompok_2/blob/main/Screenshot%20(382).png?raw=true" alt="Demonstrasi Proyek Dashboard CHF" width="800"/>
   </a>
 </p>
 <p align="center">
